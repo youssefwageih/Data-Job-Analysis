@@ -2,12 +2,13 @@
 
 📊 Dive into the 2023 data job market! Building on the dataset and star schema from Luke Barousse's SQL course, this project expands beyond a single role to explore **remote compensation across data roles**, 🔥 **in-demand Data Analyst skills**, 💰 **high-paying technical skills**, 🌐 **where roles are posted across hiring platforms**, and 🎯 **the optimal skills to learn**.
 
-🔍 SQL queries? Check out all 5 scripts directly in this repository:
+🔍 SQL queries? Check out all 6 scripts directly in this repository:
 1. [1_Top_Paying_roles.sql](1_Top_Paying_roles.sql)
 2. [2_top_demanded_skills.sql](2_top_demanded_skills.sql)
 3. [3_Top_paying_off_skills_for_each_role.sql](3_Top_paying_off_skills_for_each_role.sql)
 4. [4_job_applications.sql](4_job_applications.sql)
 5. [5_skills_to_learn.sql](5_skills_to_learn.sql)
+6. [6_quarterly_postings_trend.sql](6_quarterly_postings_trend.sql) *(Dedicated deep-dive: [6_quarterly_postings_trend_README.md](6_quarterly_postings_trend_README.md))*
 
 ---
 
@@ -24,6 +25,7 @@ While Luke Barousse's capstone focuses exclusively on **Data Analyst** positions
 3. **Which skills pay the most** across salary-disclosed data postings?
 4. **Which hiring platforms (`job_via`) post the most jobs**, and how transparent are they about salary?
 5. **What are the optimal skills to learn** for remote Data Analysts (balancing demand with high median pay)?
+6. **What is the quarterly trend of job postings and compensation across data roles** (hiring seasonality)?
 
 ### Data Coverage & Scope
 
@@ -345,6 +347,58 @@ LIMIT 6;
 - **Where Pay Leverage Lives:** Once you have the high-demand core (**SQL** \$90,000 median, **Python** \$95,000, **Tableau** \$92,625, **Power BI** \$95,000), cloud warehouses and platforms (**Snowflake**, **Azure**, **AWS**) lift median remote Data Analyst compensation well above the \$87,250 role median.
 
 ---
+
+### 6. Quarterly Job Postings & Salary Trends
+📁 File: [6_quarterly_postings_trend.sql](6_quarterly_postings_trend.sql) *(Dedicated deep-dive: [6_quarterly_postings_trend_README.md](6_quarterly_postings_trend_README.md))*
+
+To understand **when companies hire** and whether compensation shifts across the year, this query unions quarterly tables (`q1_2023_postings` to `q4_2023_postings`) created in [`sql_load/4_quarterly_postings.sql`](sql_load/4_quarterly_postings.sql) across **665,433 postings** for core data roles.
+
+```sql
+WITH quarterly_postings AS (
+    SELECT 'Q1 2023' AS quarter, job_title_short, salary_year_avg
+    FROM q1_2023_postings
+    UNION ALL
+    SELECT 'Q2 2023', job_title_short, salary_year_avg
+    FROM q2_2023_postings
+    UNION ALL
+    SELECT 'Q3 2023', job_title_short, salary_year_avg
+    FROM q3_2023_postings
+    UNION ALL
+    SELECT 'Q4 2023', job_title_short, salary_year_avg
+    FROM q4_2023_postings
+)
+SELECT
+    quarter,
+    job_title_short AS data_role,
+    COUNT(*) AS total_postings,
+    COUNT(salary_year_avg) AS postings_with_salary,
+    ROUND(AVG(salary_year_avg)) AS avg_salary_year,
+    ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary_year_avg)) AS median_salary_year,
+    ROUND(MIN(salary_year_avg)) AS min_salary_year,
+    ROUND(MAX(salary_year_avg)) AS max_salary_year
+FROM quarterly_postings
+WHERE job_title_short LIKE '%Data%'
+GROUP BY quarter, job_title_short
+ORDER BY quarter, avg_salary_year DESC;
+```
+
+**Quarterly Volume Summary (All 6 Data Roles):**
+
+| Quarter | Total Postings | Share of Year | Postings w/ Salary | Disclosure Rate |
+| :--- | ---: | ---: | ---: | ---: |
+| **Q1 2023** | **190,496** | **28.63%** | 6,073 | 3.19% |
+| **Q2 2023** | **153,299** | **23.04%** | 5,635 | 3.68% |
+| **Q3 2023** | **168,473** | **25.32%** | 5,141 | 3.05% |
+| **Q4 2023** | **153,165** | **23.01%** | 3,444 | 2.25% |
+| **Full Year** | **665,433** | **100.00%** | **20,293** | **3.05%** |
+
+![Seasonality in the Data Job Market](assets/fig7_quarterly_trend.png)
+
+- **The Q1 Surge:** Q1 delivers the highest hiring volume of the year (190,496 postings, **28.6% of the annual total**, +24.3% over Q2) as new corporate annual budgets open.
+- **Mid-Year Rebound:** After a Q2 contraction (153,299), hiring rebounds strongly in Q3 (168,473, +9.9%) before holiday freezes slow Q4 down (153,165).
+- **Salary Stability:** Senior Data Scientists (\$153k–\$158k) and Senior Data Engineers (\$143k–\$156k) maintain resilient median pay year-round. Data Analyst medians hold steady at \$90k–\$92k in Q1–Q3 before dipping to \$80k in Q4 as fewer senior/remote roles disclose compensation late in the year.
+
+---
 # Conclusions
 
 ### Key Takeaways
@@ -352,3 +406,4 @@ LIMIT 6;
 2. **Master the Core Five First:** **SQL** (54.7%), **Excel** (34.6%), **Python** (32.5%), **Tableau** (28.1%), and **Power BI** (19.6%) cover the core demand of remote Data Analyst postings.
 3. **Add Cloud Skills for Compensation Leverage:** **Snowflake** (\$106,479), **Azure** (\$104,000), and **AWS** (\$104,000) deliver the strongest median salary uplift among widely requested Data Analyst skills.
 4. **Apply Smarter, Not Just Wider:** Aggregators like BeBee and Trabajo.org generate huge posting counts with near-zero salary transparency (`0.00%–0.21%`), whereas **LinkedIn, Indeed, and ZipRecruiter** offer far higher transparency and direct employer signal.
+5. **Time Applications Around Hiring Seasonality:** Data hiring surges dramatically in **Q1 (28.6% of annual volume, +24.3% over Q2)** as new budgets unlock, followed by a secondary surge in **Q3 (+9.9%)**. Preparing your portfolio in late Q4 positions you perfectly for peak January–March hiring.
