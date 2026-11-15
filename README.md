@@ -75,6 +75,16 @@ erDiagram
         INT job_id PK_FK
         INT skill_id PK_FK
     }
+    quarterly_postings {
+        int job_id PK
+        int company_id FK
+        string job_title_short
+        date job_posted_date
+        int salary_year_avg
+        int salary_hour_avg
+    }
+
+    job_postings_fact ||--o{ quarterly_postings : "derived into"
     company_dim ||--o{ job_postings_fact : "posts (1:N)"
     job_postings_fact ||--o{ skills_job_dim : "requires (1:N)"
     skills_dim ||--o{ skills_job_dim : "appears_in (1:N)"
