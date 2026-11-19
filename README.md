@@ -8,7 +8,7 @@
 3. [3_Top_paying_off_skills_for_each_role.sql](3_Top_paying_off_skills_for_each_role.sql)
 4. [4_job_applications.sql](4_job_applications.sql)
 5. [5_skills_to_learn.sql](5_skills_to_learn.sql)
-6. [6_quarterly_postings_trend.sql](6_quarterly_postings_trend.sql) *(Dedicated deep-dive: [6_quarterly_postings_trend_README.md](6_quarterly_postings_trend_README.md))*
+6. [6_quarterly_postings_trend.sql](6_quarterly_postings_trend.sql)
 
 ---
 
